@@ -1,0 +1,4 @@
+1. write test objects with a create() method, put them in ~tests
+2. dgd dgdunit.dgd
+
+there's no proper assertions or test success/failure handlers yet.
