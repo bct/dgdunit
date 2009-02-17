@@ -22,7 +22,7 @@ static void create()
   add_user("tests");
 
   compile_object("~System/open/obj/bigmap"); /* FIXME this shouldn't go here... */
-  compile_object("~System/open/obj/node"); /* FIXME this shouldn't go here... */
+  compile_object("~System/open/data/node"); /* FIXME this shouldn't go here... */
 
   /* run tests */
   run_tests();

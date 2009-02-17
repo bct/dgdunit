@@ -2,7 +2,7 @@
 #include <dgdunit.h>
 
 #define BIGMAP "~System/open/obj/bigmap"
-#define BIGMAP_NODE "~System/open/obj/node"
+#define BIGMAP_NODE "~System/open/data/node"
 
 mapping map;
 
@@ -44,7 +44,7 @@ void assert(int value)
 void test_node()
 {
   object node, node2, node3;
-  node = clone_object(BIGMAP_NODE);
+  node = new_object(BIGMAP_NODE);
 
   /* simple creation */
   node->set_key("foo");
@@ -72,13 +72,21 @@ void test_node()
 void test_map()
 {
   int i;
+  string key;
 
   assert_equal(nil, bm->get("foo"));
 
-  for( i = 0; i < 1024; ++i) {
-    bm->insert((string)i, i);
-    assert_equal(i, bm->get((string)i));
+  INITD->message("ouch.");
+
+  for( i = 0; i < 65536; ++i) {
+    key = (string) i;
+    bm->insert(key, i);
+    assert_equal(i, bm->get(key));
   }
+
+  INITD->message("dumping");
+  /* uncomment to dump a list of all keys to stderr */
+  /*bm->get_root()->dump_keys();*/
 }
 
 void run()

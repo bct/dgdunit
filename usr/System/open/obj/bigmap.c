@@ -12,7 +12,7 @@ void insert(string key, mixed value)
 
   if(root == nil)
   {
-    root = clone_object("node");
+    root = new_object("~System/open/data/node");
     root->set_key(key);
     root->set_value(value);
     return;
@@ -41,4 +41,9 @@ mixed get(string key)
     return nil;
 
   return node->get_value();
+}
+
+object get_root()
+{
+  return root;
 }

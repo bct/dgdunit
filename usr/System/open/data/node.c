@@ -1,4 +1,4 @@
-#define BIGMAP_NODE "~System/open/obj/node"
+#define BIGMAP_NODE "~System/open/data/node"
 
 object parent;
 object left;
@@ -50,7 +50,7 @@ object insert(string k, mixed v) {
     }
     else
     {
-      node = clone_object(BIGMAP_NODE);
+      node = new_object(BIGMAP_NODE);
       node->set_key(k);
       node->set_value(v);
 
@@ -65,7 +65,7 @@ object insert(string k, mixed v) {
     }
     else
     {
-      node = clone_object(BIGMAP_NODE);
+      node = new_object(BIGMAP_NODE);
       node->set_key(k);
       node->set_value(v);
 
@@ -74,4 +74,15 @@ object insert(string k, mixed v) {
   }
 
   return node;
+}
+
+#include <dgdunit.h>
+
+void dump_keys() {
+  INITD->message(key);
+  if (left != nil)
+    left->dump_keys();
+
+  if (right != nil)
+  right->dump_keys();
 }
