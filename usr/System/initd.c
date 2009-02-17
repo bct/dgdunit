@@ -1,9 +1,11 @@
 #include <kernel/kernel.h>
 #include <kernel/rsrc.h>
+#include <kernel/access.h>
 
 #define TEST_DIR "~tests/"
 
 inherit rsrc API_RSRC;
+inherit access API_ACCESS;
 
 void message(string str);
 void run_test(string name);
@@ -11,9 +13,18 @@ void run_tests();
 
 static void create()
 {
-  rsrc::create(); /* initialize rsrcd */
-  add_owner("tests");
+  /* initialize apis */
+  rsrc::create();
+  access::create();
 
+  /* initialize test user */
+  add_owner("tests");
+  add_user("tests");
+
+  compile_object("~System/open/obj/bigmap"); /* FIXME this shouldn't go here... */
+  compile_object("~System/open/obj/node"); /* FIXME this shouldn't go here... */
+
+  /* run tests */
   run_tests();
 
   message("finished, shutting down.");
@@ -30,6 +41,7 @@ void run_test(string name)
   test = compile_object(TEST_DIR + name);
 
   message("running " + TEST_DIR + name);
+  test->run();
 }
 
 void run_tests()
@@ -54,5 +66,7 @@ void run_tests()
 
 void message(string str)
 {
+  if(str == nil)
+    str = "nil";
   DRIVER->message("dgdunit: " + str + "\n");
 }
