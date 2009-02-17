@@ -1,1 +1,6 @@
 *.swp
+include/float.h
+include/limits.h
+include/status.h
+include/trace.h
+include/type.h
