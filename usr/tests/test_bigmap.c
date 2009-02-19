@@ -40,8 +40,7 @@ string repr(mixed value)
 }
 
 int arrays_equal(mixed *a, mixed *b) {
-  int i;
-  int sz;
+  int i, sz;
 
   sz = sizeof(a);
 
@@ -49,12 +48,12 @@ int arrays_equal(mixed *a, mixed *b) {
     return FALSE;
 
   for(i = 0; i < sz; ++i) {
-    if (typeof(a[i]) == typeof(b[i]) && typeof(a[i]) == T_ARRAY) {
-      if(!arrays_equal(a[i], b[i]))
-        return FALSE;
-    } else if (a[i] != b[i]) {
+    if (typeof(a[i]) != typeof(b[i]))
       return FALSE;
-    }
+    else if (typeof(a[i]) == T_ARRAY && !arrays_equal(a[i], b[i]))
+      return FALSE;
+    else if (a[i] != b[i])
+      return FALSE;
   }
 
   return TRUE;
@@ -83,41 +82,65 @@ void assert(int value)
 
 void test_node()
 {
-  object node, node2, node3;
+  object node, node2, node3, node4, node5, node6;
   node = new_object(BIGMAP_NODE);
 
   /* simple creation */
-  node->set_key("foo");
+  node->set_key("100");
   node->set_value("Hello world!");
 
+  /* new nodes are red */
   assert_equal(BM_RED, node->get_color());
-  assert_equal(node, node->search("foo"));
-  assert_equal(nil, node->search("bar"));
+  assert_equal(node, node->search("100"));
+  assert_equal(nil, node->search("101"));
+  assert_equal(({nil, nil}), node->children());
 
-  /* change node's color to black since it's the root */
-  node->set_color(BM_BLACK);
+  /* node is the root, so it should be black */
+  node->recolor();
   assert_equal(BM_BLACK, node->get_color());
 
   /* simple replacement */
-  node->insert("foo", "Goodbye...");
+  node->insert("100", "Goodbye...");
 
+  /* color shouldn't change */
   assert_equal(BM_BLACK, node->get_color());
   assert_equal("Goodbye...", node->get_value());
 
   /* simple appendings */
-  node2 = node->insert("bar", "greetings");
-  node3 = node->insert("gaz", "");
+  node2 = node->insert("050", "greetings");
+  node3 = node->insert("150", "");
 
+  assert_equal(BM_BLACK, node->get_color());
   assert_equal(({node2, node3}), node->children());
 
-  assert_equal(3, node2->get_color());
+  assert_equal(BM_RED, node2->get_color());
   assert_equal("greetings", node2->get_value());
 
-  assert_equal(3, node3->get_color());
+  assert_equal(BM_RED, node3->get_color());
   assert_equal("", node3->get_value());
 
-  assert_equal(node2, node->search("bar"));
-  assert_equal(node3, node->search("gaz"));
+  assert_equal(node2, node->search("050"));
+  assert_equal(node3, node->search("150"));
+
+  /* append requiring fancier recoloration */
+  /* red parent, red uncle */
+
+  node4 = node->insert("025", "");
+  assert_equal(BM_RED, node4->get_color());
+
+  /* node4's parent and uncle have been recolored */
+  assert_equal(node2, node4->get_parent());
+  assert_equal(BM_BLACK, node2->get_color());
+  assert_equal(BM_BLACK, node3->get_color());
+
+  /* the root is still black */
+  assert_equal(BM_BLACK, node->get_color());
+
+  /* even fancier: red parent, black uncle */
+  /* case 1: node is on the same side of parent as parent is of grandparent */
+  node5 = node->insert("012", "");
+
+  /* case 2: node and parent are on opposite sides of their parents */
 }
 
 void test_map()
