@@ -1,11 +1,16 @@
-#define BIGMAP_NODE "~System/open/data/node"
+#include <bigmap.h>
 
 object parent;
 object left;
 object right;
 
+int color;
 string key;
 mixed value;
+
+void create(int clone) {
+  color = BM_RED;
+}
 
 string get_key() {
   return key;
@@ -25,6 +30,15 @@ void set_value(mixed v)
   value = v;
 }
 
+int get_color()
+{
+  return color;
+}
+
+void set_color(int c) {
+  color = c;
+}
+
 object search(string k) {
   if(k == key)
     return this_object();
@@ -32,6 +46,36 @@ object search(string k) {
     return left->search(k);
   else if (right != nil)
     return right->search(k);
+}
+
+object new_node(string k, string v) {
+  object node;
+
+  node = new_object(BIGMAP_NODE);
+  node->set_key(k);
+  node->set_value(v);
+
+  return node;
+}
+
+object *children() {
+  return ({left, right});
+}
+
+object _append(string k, mixed v) {
+  object node, p, uncle;
+
+  node = new_node(k, v);
+  p = this_object();
+
+  node->set_parent(p);
+
+  if(color == BM_BLACK)
+    return node;  /* black node has a new red child, all is well */
+
+  /* uncle = (parent->children() - p)[0]; */
+
+  return node;
 }
 
 object insert(string k, mixed v) {
@@ -50,10 +94,7 @@ object insert(string k, mixed v) {
     }
     else
     {
-      node = new_object(BIGMAP_NODE);
-      node->set_key(k);
-      node->set_value(v);
-
+      node = _append(k, v);
       left = node;
     }
   }
@@ -65,10 +106,7 @@ object insert(string k, mixed v) {
     }
     else
     {
-      node = new_object(BIGMAP_NODE);
-      node->set_key(k);
-      node->set_value(v);
-
+      node = _append(k, v);
       right = node;
     }
   }

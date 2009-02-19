@@ -1,8 +1,7 @@
 #include <kernel/kernel.h>
 #include <dgdunit.h>
 
-#define BIGMAP "~System/open/obj/bigmap"
-#define BIGMAP_NODE "~System/open/data/node"
+#include <bigmap.h>
 
 mapping map;
 
@@ -18,21 +17,62 @@ void create()
 
 string repr(mixed value)
 {
+  string str;
+  int i, sz;
+
   if(typeof(value) == T_STRING)
     return "'" + value + "'";
   else if(typeof(value) == T_NIL)
     return "nil";
   else if(typeof(value) == T_INT || typeof(value) == T_FLOAT)
     return (string)value;
+  else if(typeof(value) == T_ARRAY) {
+    str = "({";
+    sz = sizeof(value);
+    for (i = 0; i < sz; ++i)
+      str += " " + repr(value[i]);
+
+    str += " })";
+    return str;
+  }
 
   return "???";
 }
 
+int arrays_equal(mixed *a, mixed *b) {
+  int i;
+  int sz;
+
+  sz = sizeof(a);
+
+  if (sizeof(b) != sz)
+    return FALSE;
+
+  for(i = 0; i < sz; ++i) {
+    if (typeof(a[i]) == typeof(b[i]) && typeof(a[i]) == T_ARRAY) {
+      if(!arrays_equal(a[i], b[i]))
+        return FALSE;
+    } else if (a[i] != b[i]) {
+      return FALSE;
+    }
+  }
+
+  return TRUE;
+}
+
 void assert_equal(mixed expected, mixed actual)
 {
-  if(actual != expected) {
+  int succeed;
+
+  if (typeof(expected) != typeof(actual))
+    succeed = FALSE;
+  else if (typeof(expected) == T_ARRAY)
+    succeed = arrays_equal(expected, actual);
+  else
+    succeed = (actual == expected);
+
+  if (!succeed)
     error("assert_equal failed, expected " + repr(expected) + ", got " + repr(actual));
-  }
 }
 
 void assert(int value)
@@ -50,19 +90,30 @@ void test_node()
   node->set_key("foo");
   node->set_value("Hello world!");
 
+  assert_equal(BM_RED, node->get_color());
   assert_equal(node, node->search("foo"));
   assert_equal(nil, node->search("bar"));
+
+  /* change node's color to black since it's the root */
+  node->set_color(BM_BLACK);
+  assert_equal(BM_BLACK, node->get_color());
 
   /* simple replacement */
   node->insert("foo", "Goodbye...");
 
+  assert_equal(BM_BLACK, node->get_color());
   assert_equal("Goodbye...", node->get_value());
 
   /* simple appendings */
   node2 = node->insert("bar", "greetings");
   node3 = node->insert("gaz", "");
 
+  assert_equal(({node2, node3}), node->children());
+
+  assert_equal(3, node2->get_color());
   assert_equal("greetings", node2->get_value());
+
+  assert_equal(3, node3->get_color());
   assert_equal("", node3->get_value());
 
   assert_equal(node2, node->search("bar"));

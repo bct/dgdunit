@@ -1,3 +1,5 @@
+#include <bigmap.h>
+
 object root;
 
 object search(string key);
@@ -12,9 +14,10 @@ void insert(string key, mixed value)
 
   if(root == nil)
   {
-    root = new_object("~System/open/data/node");
+    root = new_object(BIGMAP_NODE);
     root->set_key(key);
     root->set_value(value);
+    root->set_color(BM_BLACK);
     return;
   }
 
